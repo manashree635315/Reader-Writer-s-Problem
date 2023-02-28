@@ -7,8 +7,8 @@ It refers to a situation where a file is shared among multiple users.It can also
 2. Readers - They read the file but do not make any changes.
 <hr>
 For data consistency, the following must be ensured : -
-* If the writer is editng the file, none of the readers should be able to access it. Similiary, if one or multiple readers are already reading the file, the writer should not be able to edit it.
-* On the otherhand, multiple readers can access the file simultaneously.
+a) If the writer is editng the file, none of the readers should be able to access it. Similiary, if one or multiple readers are already reading the file, the writer should not be able to edit it. <br>
+b) On the otherhand, multiple readers can access the file simultaneously.
 
 There are two classical implementations of the Reader Writer's Problem.
 1. SET1 - Prioritizes the readers where the writers may starve.
@@ -70,6 +70,31 @@ Writer-Process
     }
 }
 ```
+## Pseudocode Explanation
+#### Shared Resources
+The file which is being read/ write
+Semaphore CanRead = 1;
+Semaphore Shared_Vars = 1;
+Semaphore rw = 0;
+bool writer_waiting = false;
+int readers_request = 0;
+int readers_granted_request= 0;
+
+
+#### READERS LOGIC
+The 'CanRead' binary semaphores ensures mutual exclusion for reader processes from writer processes. <br>
+The writer waits for acquiring the CanRead semaphore before starting execution and signals it only after the critical section is exited. <br>
+The reader waits for the can read process, thus it cannot execute while the writer process is in its critical section. <br>
+Readers signal the CanRead semaphore right after increasing the value of reader_request variable. <br>
+This allows other Readers to read the file.
+
+#### WRITER LOGIC
+Once the CanRead is acquired, there are two possible cases,
+All readers that started the process have completed it, or some readers are still reading. <br>
+In the first case, the if condition is true and the critical section is executed.<br>
+In the second case, the writer enters the else condition and waits for the rw signal which is set by the reader processes only when all the readers that have started the reading process have finished executing it.<br>
+NOTE: During this time CanRead is set to 0 thus, no new read processes will be started, thus this wait time is finite. <br>
+
 
 
 
