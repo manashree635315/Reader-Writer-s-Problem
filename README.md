@@ -58,66 +58,6 @@ In this solution there is a chance that the writers may starve. If a reader is e
 
 
 ## Starvation Free Solution:
-```cpp
-//Shared Semaphores
-Semaphore in_mutex = 1;
-Semaphore out_mutex = 1; 
-Semaphore rw = 0;
-bool writer_waiting = false;
-int readers_request = 0; //represents the number of readers that have started executing 
-int readers_granted_request= 0; //represents the number of readers that have completed the reading
-
-Reader-Process
-{
-    while(true)
-    {
-        wait(in_mutex);
-        wait(out_mutex);
-        readers_request++;
-        signal(out_mutex);
-        signal(in_mutex);
-        /*q
-            Critical section
-            which needs to be exclusive 
-            writing
-        */
-       wait(out_mutex);
-       readers_granted_request++;
-       if(writer_waiting && readers_request == readers_granted_request)
-       {
-            signal(rw);
-       }
-       signal(out_mutex);
-    }
-}
-```
-
-```cpp
-Writer-Process
-{
-    while(true)
-    {
-        wait(in_mutex);
-        wait(out_mutex);
-        if(readers_request == readers_granted_request)//we will start writing
-        {
-            signal(out_mutex);
-        }else{//we will wait
-            writer_waiting = true;
-            signal(out_mutex);
-            wait(rw);
-            writer_waiting = false;
-        }
-        /*
-            Critical section
-            which needs to be exclusive 
-            reading
-        */
-       signal(in_mutex);
-    }
-}
-```
-## Pseudocode Explanation
 #### Shared Resources (and initialisation)
 ```cpp
 The file which is being read/ write
@@ -179,6 +119,7 @@ Writer_Process
 }
 ```
 
+Semaphores CanRead and Shared_vars ensure mutual exclusion around the shared variables readers_request and readers_request_granted respectively. CanRead also ensures exclusivity of the writers and readers.
 
 #### READERS LOGIC
 The 'CanRead' binary semaphores ensures mutual exclusion for reader processes from writer processes. <br>
@@ -192,7 +133,7 @@ Once the CanRead is acquired, there are two possible cases,
 All readers that started the process have completed it, or some readers are still reading. <br>
 In the first case, the if condition is true and the critical section is executed.<br>
 In the second case, the writer enters the else condition and waits for the rw signal which is set by the reader processes only when all the readers that have started the reading process have finished executing it.<br>
-NOTE: During this time CanRead is set to 0 thus, no new read processes will be started, thus this wait time is finite. The writer waits only for those read processes that are already executing. <br>
+##### NOTE: During this time CanRead is set to 0 thus, no new read processes will be started, thus this wait time is finite. The writer waits only for those read processes that are already executing. <br>
 
 
 
