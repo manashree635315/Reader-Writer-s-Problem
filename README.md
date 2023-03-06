@@ -12,10 +12,50 @@ b) On the otherhand, multiple readers can access the file simultaneously.
 
 There are two classical implementations of the Reader Writer's Problem.
 1. SET1 - Prioritizes the readers where the writers may starve.
+Shared Variables and Semaphores:-
+```cpp
+Semaphore wrt; // To ensure exclusion between writers and writers
+Semaphore mutex; //
+
+```
+The pseudocodes for the processes are as follows:-
+```cpp
+Writer_Process()
+{
+    wait(wrt);
+    /*
+    ...
+    Critical Section writing is performed
+    ...
+    */
+    signal(wrt)
+}
+
+Reader_Process()
+{
+    wait(mutex);
+    readcount++;
+    if (readcount == 1) wait(wrt);
+    signal(mutex);
+    /*
+    ...
+    reading is performed
+    ...
+    */
+    wait(mutex);
+    readcount--;
+    if (readcount == 0) signal(wrt);
+    signal(mutex):
+}
+```
+Here the mutex just ensures atomicity of the increment and decrement operations on the readcount variable.
+The wrt semaphore is changed by the reader processes only when a there are no readers and a reader process starts executing. It is signaled only when all the reader processes have completed their execution
+
+
 2. SET2 - Prioritizes the writers where the readers may starve.
 
 ## Starvation Free Solution:
-``` 'c_cpp'
+```cpp
 //Shared Semaphores
 Semaphore in_mutex = 1;
 Semaphore out_mutex = 1;
@@ -45,7 +85,9 @@ Reader-Process
        signal(out_mutex);
     }
 }
+```
 
+```cpp
 Writer-Process
 {
     while(true)
